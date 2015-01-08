@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#############################################
+#                                           #
+#            rename                         #
+#              S.Nenon 2013                 #
+#                                           #
+#############################################
+#
+# v0.2: detection améliorée de l'extension, fonctionne avec extensions
+# de + de 3 lettres
+
+import sys,os.path
+from os import rename
+
+class filename():
+    """
+    Filename modification, detection
+    """
+    def __init__(self,filenamein):
+        self.originName=filenamein
+        self.isFile=os.path.isfile(filenamein)
+        self.status='File' if self.isFile else 'Folder'
+        self.extension=''
+        self.currentName=self.originName
+        if self.isFile:
+            self.extension='.'+self.originName.split('.')[-1]
+            self.currentName=self.originName[:-(len(self.extension))]
+
+    def replace(self,patin,patout):
+        self.currentName=self.currentName.replace(patin,patout)
+
+    def undo(self):
+        self.extension=''
+        self.currentName=self.originName
+        if self.isFile:
+            self.extension=self.originName.split('.')[-1]
+            self.currentName=self.originName[:-(len(self.extension))]
+
+    def writenquit(self):
+        self.finalname=self.currentName+self.extension
+        os.rename(self.originName,self.finalname)
+
+
+
+
+# get args
+files=sys.argv[1:]
+
+# init file_list
+file_list=[]
+option=''
+for i in files:
+    file_list.append(filename(i))
+
+# main procedure
+while not option == 'q':
+    print '='*30
+    for i in file_list:
+        print '{}{}'.format(i.currentName,i.extension)
+    print '='*30
+    print ''
+    print 'd: delete patterns'
+    print 'r: replace pattern'
+    print 'w: write and quit'
+    print 'u: undo all'
+
+    option=raw_input('What do you want? (q to quit): ')
+    if option == 'r':
+        patin=raw_input('Pattern to replace: ')
+        patout=raw_input('Replacement pattern: ')
+        for i in file_list:
+            i.replace(patin,patout)
+    elif option == 'd':
+        patin=raw_input('Pattern to delete: ')
+        patout=''
+        for i in file_list:
+            i.replace(patin,patout)
+    elif option == 'u':
+        for i in file_list:
+            i.undo()
+    elif option == 'w':
+        for i in file_list:
+            i.writenquit()
+            option='q'
